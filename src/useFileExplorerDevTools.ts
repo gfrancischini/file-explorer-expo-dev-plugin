@@ -22,7 +22,11 @@ const methods = {
   },
 }
 
-export function useFileExplorerDevTools() {
+type FileExplorerDevToolsOptions = {
+  additionalRootDirectories?: Record<string, string>
+}
+
+export function useFileExplorerDevTools(options?: FileExplorerDevToolsOptions) {
   const client = useDevToolsPluginClient('file-explorer-expo-dev-plugin')
 
   const sendError = useCallback(
@@ -105,6 +109,7 @@ export function useFileExplorerDevTools() {
             document: FileSystem.documentDirectory,
             cache: FileSystem.cacheDirectory,
             bundle: `file://${FileSystem.bundleDirectory}`,
+            ...options?.additionalRootDirectories,
           },
         })
       )

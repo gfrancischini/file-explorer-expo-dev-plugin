@@ -1,4 +1,4 @@
-import { Divider, message, theme, Typography } from 'antd'
+import { Divider, theme, Typography } from 'antd'
 import { useMemo, useState, useEffect, useCallback } from 'react'
 import { View, StyleSheet } from 'react-native'
 
@@ -12,9 +12,8 @@ import { useFsClient } from './useFsClient'
 
 export function Explorer() {
   const { token } = theme.useToken()
-  const [rootDirectoryType, setRootDirectoryType] = useState<RootDirectory>(
-    RootDirectory.Document
-  )
+  const [rootDirectoryType, setRootDirectoryType] =
+    useState<RootDirectory>('document')
   const [activePath, setActivePath] = useState<string>('')
 
   const {
@@ -81,6 +80,11 @@ export function Explorer() {
       style={[styles.container, { backgroundColor: token.colorBgContainer }]}
     >
       <RootPicker
+        roots={
+          rootDirectories
+            ? Object.keys(rootDirectories)
+            : ['document', 'cache', 'bundle']
+        }
         onRootChange={setRootDirectoryType}
         selectedRoot={rootDirectoryType}
       />

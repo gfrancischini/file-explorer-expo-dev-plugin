@@ -1,10 +1,6 @@
 import { FileInfo } from 'expo-file-system/legacy'
 
-export enum RootDirectory {
-  Document = 'document',
-  Cache = 'cache',
-  Bundle = 'bundle',
-}
+export type RootDirectory = 'document' | 'cache' | 'bundle' | (string & {})
 
 export type AppFile = {
   name: string
