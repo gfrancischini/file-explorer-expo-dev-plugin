@@ -1,7 +1,8 @@
 import { useDevToolsPluginClient, type EventSubscription } from 'expo/devtools'
-import * as FileSystem from 'expo-file-system/legacy'
 import { useCallback, useEffect } from 'react'
 import { Platform } from 'react-native'
+
+import FileSystem from './fileSystemCompat'
 
 const methods = {
   in: {
