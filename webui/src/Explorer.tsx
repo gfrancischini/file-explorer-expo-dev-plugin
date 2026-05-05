@@ -1,7 +1,8 @@
-import { Divider, message, theme } from 'antd'
+import { Divider, message, theme, Typography } from 'antd'
 import { useMemo, useState, useEffect, useCallback } from 'react'
 import { View, StyleSheet } from 'react-native'
 
+import { version } from '../package.json'
 import { FileList } from './components/FileList'
 import { InterractivePath } from './components/InterractivePath'
 import { RootPicker } from './components/RootPicker'
@@ -102,6 +103,15 @@ export function Explorer() {
           handleItemDelete={handleItemDelete}
           handleItemDownload={handleItemDownload}
         />
+        <Divider />
+        <View style={styles.footer}>
+          <Typography.Text
+            type="secondary"
+            style={{ fontSize: token.fontSizeSM }}
+          >
+            v{version}
+          </Typography.Text>
+        </View>
       </View>
     </View>
   )
@@ -118,5 +128,9 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     width: '100%',
+  },
+  footer: {
+    alignItems: 'center',
+    paddingBottom: 8,
   },
 })
