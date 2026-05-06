@@ -75,7 +75,9 @@ export function useFileExplorerDevTools(options?: FileExplorerDevToolsOptions) {
             try {
               return {
                 name: file,
-                info: await FileSystem.getInfoAsync(`${data.path}/${file}`),
+                info: await FileSystem.getInfoAsync(
+                  `${data.path.replace(/\/$/, '')}/${encodeURIComponent(file)}`
+                ),
               }
             } catch (error) {
               const message =
@@ -111,11 +113,17 @@ export function useFileExplorerDevTools(options?: FileExplorerDevToolsOptions) {
             document: FileSystem.documentDirectory,
             cache: FileSystem.cacheDirectory,
             bundle: `file://${FileSystem.bundleDirectory}`,
-            ...(Platform.OS === 'ios' && {
-              library: FileSystem.documentDirectory?.replace(
-                /Documents\/$/,
-                'Library/'
-              ),
+            ...Platform.select({
+              ios: {
+                bundle: `file://${FileSystem.bundleDirectory}`,
+                library: FileSystem.documentDirectory?.replace(
+                  /Documents\/$/,
+                  'Library/'
+                ),
+              },
+              android: {
+                library: FileSystem.documentDirectory?.replace('/files/', '/'),
+              },
             }),
             ...options?.additionalRootDirectories,
           },
