@@ -5,6 +5,7 @@ import { View, StyleSheet } from 'react-native'
 import { version } from '../package.json'
 import { FileList } from './components/FileList'
 import { InterractivePath } from './components/InterractivePath'
+import { PreviewModal } from './modals/PreviewModal'
 import { RootPicker } from './components/RootPicker'
 import { Toolbar } from './components/Toolbar'
 import { AppFile, RootDirectory } from './types'
@@ -24,6 +25,9 @@ export function Explorer() {
     deleteFile,
     uploadFile,
     createNewFolder,
+    previewFile,
+    previewContent,
+    clearPreview,
   } = useFsClient({
     setActivePath,
     rootDirectoryType,
@@ -58,7 +62,14 @@ export function Explorer() {
         setActivePath(file.info.uri)
       }
     },
-    [getFileContent, setActivePath]
+    [setActivePath]
+  )
+
+  const handleItemPreview = useCallback(
+    (file: AppFile) => {
+      previewFile(file.info.uri)
+    },
+    [previewFile]
   )
 
   const handleItemDelete = useCallback(
@@ -106,7 +117,9 @@ export function Explorer() {
           handleItemPress={handleItemPress}
           handleItemDelete={handleItemDelete}
           handleItemDownload={handleItemDownload}
+          handleItemPreview={handleItemPreview}
         />
+        <PreviewModal previewContent={previewContent} onClose={clearPreview} />
         <Divider />
         <View style={styles.footer}>
           <Typography.Text

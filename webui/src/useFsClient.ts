@@ -1,7 +1,7 @@
 import { message } from 'antd'
 import { useDevToolsPluginClient, type EventSubscription } from 'expo/devtools'
 import mime from 'mime'
-import { useEffect, useCallback, useState } from 'react'
+import { useEffect, useCallback, useState, useRef } from 'react'
 
 import { AppFile, RootDirectory } from '@/types'
 import { base64ToByteArray, convertFileToBase64 } from '@/utils'
@@ -43,6 +43,12 @@ export function useFsClient({
     string
   > | null>(null)
   const [files, setFiles] = useState<AppFile[]>([])
+  const [previewContent, setPreviewContent] = useState<{
+    url: string
+    mimeType: string
+    fileName: string
+  } | null>(null)
+  const pendingAction = useRef<'download' | 'preview'>('download')
 
   const fetchFiles = useCallback(() => {
     if (activePath === '') return
@@ -52,10 +58,26 @@ export function useFsClient({
 
   const getFileContent = useCallback(
     (path: string) => {
+      pendingAction.current = 'download'
       client?.sendMessage(methods.out.getFileContent, { path })
     },
     [client]
   )
+
+  const previewFile = useCallback(
+    (path: string) => {
+      pendingAction.current = 'preview'
+      client?.sendMessage(methods.out.getFileContent, { path })
+    },
+    [client]
+  )
+
+  const clearPreview = useCallback(() => {
+    setPreviewContent((prev) => {
+      if (prev) URL.revokeObjectURL(prev.url)
+      return null
+    })
+  }, [])
 
   const deleteFile = useCallback(
     (path: string) => {
@@ -109,17 +131,23 @@ export function useFsClient({
 
     subscriptions.push(
       client.addMessageListener(methods.in.getFileContent, (data) => {
+        const mimeType = mime.getType(data.path) || ''
         const blob = new Blob([base64ToByteArray(data.content)], {
-          type: mime.getType(data.path) || '',
+          type: mimeType,
         })
         const url = URL.createObjectURL(blob)
 
-        const a = document.createElement('a')
-        a.href = url
-        a.download = decodeURI(data.path).split('/').pop() || 'file'
-        a.click()
-
-        setTimeout(() => URL.revokeObjectURL(url), 100)
+        if (pendingAction.current === 'preview') {
+          pendingAction.current = 'download'
+          const fileName = decodeURI(data.path).split('/').pop() || 'file'
+          setPreviewContent({ url, mimeType, fileName })
+        } else {
+          const a = document.createElement('a')
+          a.href = url
+          a.download = decodeURI(data.path).split('/').pop() || 'file'
+          a.click()
+          setTimeout(() => URL.revokeObjectURL(url), 100)
+        }
       })
     )
 
@@ -170,5 +198,8 @@ export function useFsClient({
     deleteFile,
     uploadFile,
     createNewFolder,
+    previewFile,
+    previewContent,
+    clearPreview,
   }
 }

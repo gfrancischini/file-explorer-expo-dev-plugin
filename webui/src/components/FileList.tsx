@@ -17,6 +17,7 @@ type FileListProps = {
   handleItemPress: (file: AppFile) => void
   handleItemDelete: (file: AppFile) => void
   handleItemDownload: (file: AppFile) => void
+  handleItemPreview: (file: AppFile) => void
 }
 
 export function FileList({
@@ -24,6 +25,7 @@ export function FileList({
   handleItemPress,
   handleItemDelete,
   handleItemDownload,
+  handleItemPreview,
 }: FileListProps) {
   const { token } = theme.useToken()
 
@@ -38,7 +40,9 @@ export function FileList({
           style={{
             color: file.info.isDirectory ? token.colorPrimary : token.colorText,
           }}
-          onClick={() => handleItemPress(file)}
+          onClick={() =>
+            file.info.isDirectory ? handleItemPress(file) : handleItemPreview(file)
+          }
         >
           {file.info.isDirectory ? (
             <FolderOutlined
