@@ -6,6 +6,20 @@ import { useEffect, useCallback, useState, useRef } from 'react'
 import { AppFile, RootDirectory } from '@/types'
 import { base64ToByteArray, convertFileToBase64 } from '@/utils'
 
+function looksLikeText(bytes: Uint8Array, sampleSize = 512): boolean {
+  const end = Math.min(bytes.length, sampleSize)
+  if (end === 0) return false
+  let nonPrintable = 0
+  for (let i = 0; i < end; i++) {
+    const b = bytes[i]!
+    // Allow tab(9), LF(10), CR(13), printable ASCII(32-126), high bytes for UTF-8
+    if (b < 9 || (b > 13 && b < 32) || b === 127) {
+      nonPrintable++
+    }
+  }
+  return nonPrintable / end < 0.1
+}
+
 const methods = {
   in: {
     ping: 'r-ping',
@@ -131,8 +145,10 @@ export function useFsClient({
 
     subscriptions.push(
       client.addMessageListener(methods.in.getFileContent, (data) => {
-        const mimeType = mime.getType(data.path) || ''
-        const blob = new Blob([base64ToByteArray(data.content)], {
+        const bytes = base64ToByteArray(data.content)
+        const mimeType =
+          mime.getType(data.path) || (looksLikeText(bytes) ? 'text/plain' : '')
+        const blob = new Blob([bytes], {
           type: mimeType,
         })
         const url = URL.createObjectURL(blob)
