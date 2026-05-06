@@ -20,6 +20,16 @@ function looksLikeText(bytes: Uint8Array, sampleSize = 512): boolean {
   return nonPrintable / end < 0.1
 }
 
+function looksLikeJson(bytes: Uint8Array): boolean {
+  try {
+    const text = new TextDecoder().decode(bytes)
+    JSON.parse(text)
+    return true
+  } catch {
+    return false
+  }
+}
+
 const methods = {
   in: {
     ping: 'r-ping',
@@ -146,8 +156,14 @@ export function useFsClient({
     subscriptions.push(
       client.addMessageListener(methods.in.getFileContent, (data) => {
         const bytes = base64ToByteArray(data.content)
+        const detectedMime = mime.getType(data.path)
         const mimeType =
-          mime.getType(data.path) || (looksLikeText(bytes) ? 'text/plain' : '')
+          detectedMime ||
+          (looksLikeJson(bytes)
+            ? 'application/json'
+            : looksLikeText(bytes)
+            ? 'text/plain'
+            : '')
         const blob = new Blob([bytes], {
           type: mimeType,
         })

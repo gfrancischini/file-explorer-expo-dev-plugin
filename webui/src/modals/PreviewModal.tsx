@@ -35,7 +35,14 @@ function PreviewBody({ previewContent }: { previewContent: PreviewContent }) {
     if (isTextMime(mimeType)) {
       fetch(url)
         .then((r) => r.text())
-        .then(setTextContent)
+        .then((text) => {
+          if (mimeType === 'application/json') {
+            try {
+              return setTextContent(JSON.stringify(JSON.parse(text), null, 2))
+            } catch {}
+          }
+          setTextContent(text)
+        })
     }
   }, [url, mimeType])
 
